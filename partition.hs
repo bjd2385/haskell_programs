@@ -17,31 +17,25 @@ bell n = if n <= 1 then 1
          else sum [binomial (n - 1) k * bell k | k <- [0..(n - 1)]]
 
 
---    def partition(collection):
---        if len(collection) == 1:
---            yield [collection]
---            return
---
---        first = collection[0]
---        for smaller in partition(collection[1:]):
---            for n, subset in enumerate(smaller):
---                yield smaller[:n] + [[first] + subset] + smaller[n + 1:]
---            yield [[first]] + smaller
-
-
-forcePart[Int] -> Int
-forcePart x = length $ filter filtF (parts x)
+forcePart :: [Int] -> Int
+forcePart x = length $ filter filtF (partitions x)
   where
     filtF :: [[Int]] -> Bool
-    filtF = or . map (\s -> (0 `elem` s && 1 `elem` s) 
-                         || (0 `elem` s && 2 `elem` s)
-                         || (0 `elem` s && 1 `elem` s && 2 `elem` s))
-    parts :: [Int] -> [[[Int]]]
-    parts [s] = [[[s]]]
-    parts (s:ss) = [ | 
-                       take y part ++ [[s] ++ subset] ++ drop (y + 1) part, 
-                       (y,subset) <- zip part [0..(length part)], 
-                       smaller <- parts ss ]
+    filtF = or . map (\s -> (0 `elem` s && 1 `elem` s && 2 `elem` s)
+                         || (0 `elem` s && 1 `elem` s) 
+                         || (0 `elem` s && 2 `elem` s))
+    -- This is hard!
+    -- https://stackoverflow.com/a/46596325/3928184 
+    partitions :: [a] -> [[[a]]]
+    partitions [] = [[]]
+    partitions (x:xs) = expand x $ partitions xs 
+      where
+        expand :: a -> [[[a]]] -> [[[a]]]
+        expand x ys = concatMap (extend x) ys
+
+        extend :: a -> [[a]] -> [[[a]]]
+        extend x [] = [[[x]]]
+        extend x (y:ys) = ((x:y):ys) : map (y:) (extend x ys)
 
 
 show' :: Show a => a -> IO ()
